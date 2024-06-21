@@ -25,10 +25,33 @@ SELECT name, country FROM cities;
 
 -- Calculated Columns
 SELECT name, population / area FROM cities;
-
 -- With column name
-SELECT name, population / area as density FROM cities;
+SELECT name, population / area AS density FROM cities;
 
+-- String Operators and Functions
+-- Join Two string
+-- Pipe operator ||
+SELECT name || country FROM cities;
 
+SELECT name || ', ' || country AS location FROM cities;
 
+-- Using Concat
+SELECT CONCAT(name, country) AS location FROM cities;
 
+SELECT CONCAT(name, ', ', country) AS location FROM cities;
+
+-- Using Lower & Upper
+SELECT
+	CONCAT(UPPER(name), ', ', UPPER(country)) AS location
+FROM cities;
+
+SELECT
+	UPPER(CONCAT(name, ', ', country)) AS location
+FROM cities;
+
+SELECT
+	LOWER(CONCAT(name, ', ', country)) AS location
+FROM cities;
+
+-- Length of string
+SELECT name, LENGTH(name) AS length_of_name FROM cities;
