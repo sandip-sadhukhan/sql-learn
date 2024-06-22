@@ -8,7 +8,7 @@ CREATE TABLE cities (
 
 -- Insert Data
 INSERT INTO cities (name, country, population, area)
-VALUES ('Tokyo', 'Japan', 3000330, 38393);
+VALUES ('Tokyo', 'Japan', 38505000, 8223);
 
 -- Bulk Insert
 INSERT INTO cities (name, country, population, area)
