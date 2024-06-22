@@ -163,3 +163,107 @@ SELECT * FROM comments;
     Aggregation - Looks at many rows and calculate a single value.
                   Words like 'most', 'average', 'least' are a sign that you need to use an aggregation.
 */
+
+-- For each comment, show the contents of the comment and the username of the
+-- user who wrote the comment.
+SELECT contents, username
+FROM comments
+JOIN users ON users.id = comments.user_id;
+
+-- For each comment, list the contents of the comment and the URL of the photo
+-- the comment was added to
+SELECT contents, url
+FROM comments
+JOIN photos ON photos.id = comments.photo_id;
+
+-- Can provide more context on field
+SELECT comments.id
+FROM comments
+JOIN photos ON photos.id = comments.photo_id;
+
+-- Rename the column
+SELECT comments.id AS comment_id
+FROM comments
+JOIN photos ON photos.id = comments.photo_id;
+
+-- Rename the table
+SELECT c.id AS comment_id, p.id
+FROM comments AS c
+JOIN photos AS p ON p.id = c.photo_id;
+
+-- Can omit AS also, but recommanded for readibility
+
+SELECT c.id comment_id, p.id
+FROM comments c
+JOIN photos p ON p.id = c.photo_id;
+
+
+-- Show all photos url with username who added it
+SELECT photos.url, users.username
+FROM photos
+JOIN users ON photos.user_id = users.id;
+
+-- Insert photo with null username
+INSERT INTO photos (url, user_id)
+VALUES ('http://banner.jpg', NULL);
+
+/* Now the normal join will not show the null row.
+
+Why?
+=> We are using "JOIN" keyword which is a INNER JOIN which drop the unmatched
+rows from source table.
+
+TYPES OF JOINS:
+1. Inner Join: By default it is inner join. Keyword is either JOIN or INNER JOIN
+               Returns results which are matched from both tables.
+               [Bascially Intersection of both tables]
+
+2. Left Outer Join: `LEFT JOIN`. Basically whole Left Table + intersection
+
+3. Right Outer Join: `RIGHT JOIN`. Basically whole right Table + intersection
+
+4. Full Outer Join:
+
+*/
+
+-- Will return all values from left table + intersection
+SELECT photos.url, users.username
+FROM photos
+LEFT JOIN users ON photos.user_id = users.id;
+
+INSERT INTO users (username)
+VALUES ('nicole')
+
+SELECT photos.url, users.username
+FROM photos
+RIGHT JOIN users ON photos.user_id = users.id;
+
+SELECT photos.url, users.username
+FROM photos
+FULL JOIN users ON photos.user_id = users.id;
+
+/*
+Does ordering of join matter?
+Means if we join photos in users table OR join users on photos table,
+does it make it difference?
+
+If you are using INNER JOIN or FULL JOIN, then it doens't matter.
+
+But if you are doing LEFT or RIGHT join then it does matter.
+The FROM X JOIN Y -> X is Left table, and Y is right side table.
+
+*/
+
+-- JOIN With Filter
+-- Users can comment on photos that they posted. List the url and contents
+-- for every photo/comment where this occured.
+SELECT url, contents
+FROM comments
+JOIN photos ON photos.id = comments.photo_id
+WHERE photos.user_id = comments.user_id;
+
+-- 3 way join
+SELECT url, contents, username
+FROM comments
+JOIN photos ON photos.id = comments.photo_id
+JOIN users ON comments.user_id = users.id AND photos.id = users.id;
