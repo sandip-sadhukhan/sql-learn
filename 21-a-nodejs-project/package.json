@@ -1,0 +1,16 @@
+{
+  "name": "21-a-nodejs-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "migrate": "node-pg-migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-pg-migrate": "^7.9.1",
+    "pg": "^8.13.3"
+  }
+}
