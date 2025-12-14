@@ -1,18 +1,18 @@
 /*******  LOAD DATASET ********/
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  first_name VARCHAR,
-  last_name VARCHAR
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  first_name VARCHAR2(100),
+  last_name VARCHAR2(100)
 );
 CREATE TABLE products (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR,
-  department VARCHAR,
-  price INTEGER,
-  weight INTEGER
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR2(100),
+  department VARCHAR2(200),
+  price NUMBER,
+  weight NUMBER
 );
 CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
   product_id INTEGER REFERENCES products(id),
   paid BOOLEAN
