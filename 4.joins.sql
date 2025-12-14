@@ -1,18 +1,18 @@
 -- Load Data
 CREATE TABLE users(
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50)
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  username VARCHAR2(50)
 );
  
 CREATE TABLE photos (
-  id SERIAL PRIMARY KEY,
-  url VARCHAR(200),
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  url VARCHAR2(200),
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 );
  
 CREATE TABLE comments (
-  id SERIAL PRIMARY KEY,
-  contents VARCHAR(240),
+  id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  contents VARCHAR2(240),
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   photo_id INTEGER REFERENCES photos(id) ON DELETE CASCADE
 );
@@ -188,11 +188,10 @@ JOIN photos ON photos.id = comments.photo_id;
 
 -- Rename the table
 SELECT c.id AS comment_id, p.id
-FROM comments AS c
-JOIN photos AS p ON p.id = c.photo_id;
+FROM comments c
+JOIN photos p ON p.id = c.photo_id;
 
--- Can omit AS also, but recommanded for readibility
-
+-- Can omit AS also, but recommended for readability
 SELECT c.id comment_id, p.id
 FROM comments c
 JOIN photos p ON p.id = c.photo_id;
@@ -216,7 +215,7 @@ rows from source table.
 TYPES OF JOINS:
 1. Inner Join: By default it is inner join. Keyword is either JOIN or INNER JOIN
                Returns results which are matched from both tables.
-               [Bascially Intersection of both tables]
+               [Basically Intersection of both tables]
 
 2. Left Outer Join: `LEFT JOIN`. Basically whole Left Table + intersection
 
@@ -234,10 +233,12 @@ LEFT JOIN users ON photos.user_id = users.id;
 INSERT INTO users (username)
 VALUES ('nicole')
 
+-- Right join example
 SELECT photos.url, users.username
 FROM photos
 RIGHT JOIN users ON photos.user_id = users.id;
 
+-- Full outer join example
 SELECT photos.url, users.username
 FROM photos
 FULL JOIN users ON photos.user_id = users.id;
@@ -245,9 +246,9 @@ FULL JOIN users ON photos.user_id = users.id;
 /*
 Does ordering of join matter?
 Means if we join photos in users table OR join users on photos table,
-does it make it difference?
+does it make a difference?
 
-If you are using INNER JOIN or FULL JOIN, then it doens't matter.
+If you are using INNER JOIN or FULL JOIN, then it doesn't matter.
 
 But if you are doing LEFT or RIGHT join then it does matter.
 The FROM X JOIN Y -> X is Left table, and Y is right side table.
@@ -256,7 +257,7 @@ The FROM X JOIN Y -> X is Left table, and Y is right side table.
 
 -- JOIN With Filter
 -- Users can comment on photos that they posted. List the url and contents
--- for every photo/comment where this occured.
+-- for every photo/comment where this occurred.
 SELECT url, contents
 FROM comments
 JOIN photos ON photos.id = comments.photo_id

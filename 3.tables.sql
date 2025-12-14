@@ -7,10 +7,9 @@ Three types of relationships:
 
 -- Auto increment ID
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50)
-)
-
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR2(50)
+);
 
 INSERT INTO users (username)
 VALUES
@@ -24,7 +23,7 @@ SELECT * FROM users;
 
 -- How to define Foreign key in table
 CREATE TABLE photos (
-    id SERIAL PRIMARY KEY,
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     url VARCHAR(200),
     user_id INTEGER REFERENCES users(id)
 )
@@ -45,11 +44,11 @@ SELECT * FROM photos WHERE user_id = 4;
 SELECT url, username FROM photos
 JOIN users ON users.id = photos.user_id;
 
--- This line will give error saying it violet foreign key constraints
+-- This line will give error saying it violates foreign key constraints
 DELETE FROM users WHERE id = 4;
 
 /*
-Reason - we have photos with user_id = 1, so what will happen to them?
+Reason - we have photos with user_id = 4, so what will happen to them?
 
 We can control this by on delete options.
 
@@ -68,7 +67,7 @@ DROP TABLE photos;
 
 -- Example ON DELETE
 CREATE TABLE photos (
-    id SERIAL PRIMARY KEY,
-    url VARCHAR(200),
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
-)
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    url VARCHAR2(200),
+    user_id NUMBER REFERENCES users(id) ON DELETE SET NULL
+);

@@ -1,9 +1,9 @@
 -- Create Table
 CREATE TABLE cities (
-	name VARCHAR(50),
-	country VARCHAR(50),
-	population INTEGER,
-	area INTEGER
+	name VARCHAR2(50),
+	country VARCHAR2(50),
+	population NUMBER,
+	area NUMBER
 );
 
 -- Insert Data
