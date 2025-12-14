@@ -1,92 +1,86 @@
 -- Question: Find the 4 products with the highest price and the 4
 -- products with the highest price/weight ratio.
+
+-- Using UNION (removes duplicates if any product appears in both sets)
 (
     SELECT *
     FROM products
     ORDER BY price DESC
-    LIMIT 4
+    FETCH FIRST 4 ROWS ONLY
 )
 UNION
 (
     SELECT *
     FROM products
-    ORDER BY price / weight DESC
-    LIMIT 4
+    ORDER BY (price / weight) DESC
+    FETCH FIRST 4 ROWS ONLY
 );
 
--- UNION: Append both results, remove duplicates
--- UNION ALL: Append both results and not remove duplicates.
-
+-- UNION ALL: Appends both results without removing duplicates
 (
     SELECT *
     FROM products
     ORDER BY price DESC
-    LIMIT 4
+    FETCH FIRST 4 ROWS ONLY
 )
 UNION ALL
 (
     SELECT *
     FROM products
-    ORDER BY price / weight DESC
-    LIMIT 4
+    ORDER BY (price / weight) DESC
+    FETCH FIRST 4 ROWS ONLY
 );
 
--- Parenthesis is not needed normally but needed when we use LIMIT, ORDER BY
--- etc. otherwise DB will throw error.
+-- Parentheses are required around subqueries that contain ORDER BY with FETCH/LIMIT
 
 
--- IMPORTANT: Below query will throw error!!!!!
--- Union only works when we have same name of columns and same data type.
+-- IMPORTANT: Below query will still throw an error!
+-- UNION requires both queries to have the same number of columns, same names (recommended), and compatible data types.
 SELECT * FROM products
 UNION
-SELECT * FROM orders;
+SELECT * FROM orders;  -- Error: different column counts and types
 
 
 /*
-Some other types of SET operations.
+Some other types of SET operations in Oracle:
 
-UNION - Join together the results of two queries and remove duplicate rows.
-UNION ALL - Join together the results of two queries.
+UNION          - Combine results of two queries, remove duplicate rows
+UNION ALL      - Combine results of two queries, keep all rows (including duplicates)
 
-INTERSECT - Find the rows common in the results of two queries. Remove duplicates.
-INTERSECT ALL - Find the rows common in the results of two queries.
+INTERSECT      - Rows common to both queries (duplicates removed)
+-- Note: Oracle does NOT support INTERSECT ALL
 
-EXCEPT - Find the rows that are present in first query but not second query. Remove duplicates.
-EXCEPT ALL - Find the rows that are present in first query but not second query.
+MINUS          - Rows in first query but NOT in second query (duplicates removed)
+-- Note: Oracle does NOT support EXCEPT or EXCEPT ALL (use MINUS instead)
 */
 
+-- Common products in both top-4 sets (intersection)
 (
     SELECT *
     FROM products
     ORDER BY price DESC
-    LIMIT 4
+    FETCH FIRST 4 ROWS ONLY
 )
 INTERSECT
 (
     SELECT *
     FROM products
-    ORDER BY price / weight DESC
-    LIMIT 4
-)
+    ORDER BY (price / weight) DESC
+    FETCH FIRST 4 ROWS ONLY
+);
 
--- NOTE: Intersect all is useful when first and second query return duplicate
--- rows, so intersect will remove duplicates, but if we want then we can use
--- INTERSECT ALL.
-
-
--- Return first table except the records of second table
--- Basically SET DIFFERENCE = A - B. A is first table, B is second table.
+-- Products in the top-4 highest price that are NOT in the top-4 highest price/weight ratio
+-- (Set difference: A - B)
 (
     SELECT *
     FROM products
     ORDER BY price DESC
-    LIMIT 4
+    FETCH FIRST 4 ROWS ONLY
 )
-EXCEPT
+MINUS
 (
     SELECT *
     FROM products
-    ORDER BY price / weight DESC
-    LIMIT 4
-)
-
+    ORDER BY (price / weight) DESC
+    FETCH FIRST 4 ROWS ONLY
+);

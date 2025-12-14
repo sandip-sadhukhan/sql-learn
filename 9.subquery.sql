@@ -1,4 +1,4 @@
--- Query: List the name and price of all products that are most expensive
+-- Query: List the name and price of all products that are more expensive
 -- than all products in the 'Toys' department.
 
 SELECT name, price
@@ -12,10 +12,10 @@ WHERE price > (
 -- Where can I use subquery?
 SELECT
     p1.name,
-    (SELECT COUNT(name) FROM products) -- A source of a value
-FROM (SELECT * FROM products) as p1 -- A source of rows
-JOIN (SELECT * FROM products) as p2 ON p1.id = p2.id -- A source of rows
-WHERE p1.id IN (SELECT id FROM products); -- A source of a column
+    (SELECT COUNT(*) FROM products) -- Scalar subquery: returns a single value
+FROM (SELECT * FROM products) p1 -- Derived table: source of rows
+JOIN (SELECT * FROM products) p2 ON p1.id = p2.id -- Derived table in JOIN
+WHERE p1.id IN (SELECT id FROM products); -- List subquery: single column, multiple rows
 
 
 /*
@@ -26,78 +26,51 @@ WHERE p1.id IN (SELECT id FROM products); -- A source of a column
     SELECT COUNT(*) FROM orders -> One row, one column (Scalar query)
 */
 
--- Subquery inside SELECT
+-- Subquery inside SELECT (scalar subquery)
 SELECT name, price, (
-    SELECT MAX(price) FROM products -- if this value is not found, then it will return NULL
-)
+    SELECT MAX(price) FROM products  -- Returns NULL if no rows (though unlikely here)
+) AS overall_max_price
 FROM products
 WHERE price > 867;
 
 
--- Subquery inside FROM
--- Any subquery, so long as the outer selects/wheres/etc are compatible
--- Subquery must have an alias applied to it.
+-- Subquery inside FROM (derived table - must have an alias)
 SELECT name, price_weight_ratio
-FROM (SELECT name, price / weight AS price_weight_ratio FROM products) AS p
+FROM (
+    SELECT name, price / weight AS price_weight_ratio 
+    FROM products
+) p
 WHERE price_weight_ratio > 5;
 
--- More example
+-- Another example
 SELECT *
-FROM (SELECT MAX(price) FROM products) AS p;
+FROM (SELECT MAX(price) FROM products) p;
 
 
-/*
-Practical use of subquery in a FROM.
-
-Query: Find the average number of orders for all users.
-
-(There can be multiple solution of this problem, but we are using sub query solution here)
-*/
-
+-- Practical use of subquery in FROM
+-- Query: Find the average number of orders per user
 SELECT AVG(order_count)
 FROM (
     SELECT user_id, COUNT(*) AS order_count
     FROM orders
     GROUP BY user_id
-) AS p;
+) p;
 
 
-/*
-    Subquery in JOIN clause example
-
-    Any subquery that returns data compatible with the 'ON' clause
-
-    NOTE: below query is pointless but added just for example.
-*/
-
+-- Subquery in JOIN clause
 SELECT first_name
 FROM users
 JOIN (
     SELECT user_id
     FROM orders
     WHERE product_id = 3
-) AS o
-ON o.user_id = users.id
+) o
+ON o.user_id = users.id;
 
 
-/*
-    Subquery in WHERE clause
-
-    Structure of data allowed to be returned by subquery changes
-    depending on the comparison operator. For below example we are using
-    'IN' operator, so need 1 column multiple rows structure from subquery.
-
-    For example if you use <, >, <=, >=, =, <> or != then subquery should give
-    single value.
-    For IN and NOT IN it expect a list, so subquery should give single column
-    results.
-
-
-    Query: Show the id of orders that involve a product with a price/weight
-    ratio greater than 50.
-
-    NOTE: This is an example. We can avoid subquery using joins also in this case.
-*/
+-- Subquery in WHERE clause
+-- Query: Show the id of orders that involve a product with a price/weight
+-- ratio greater than 50.
 SELECT id
 FROM orders
 WHERE product_id IN (
@@ -105,9 +78,6 @@ WHERE product_id IN (
     FROM products
     WHERE price / weight > 50
 );
-
--- NOTE: sometimes Postgres try to understand what query we need then
--- rewrite the query, so if you use join or subquery it may give same results.
 
 
 -- Query: Show the name of all products with a price greater than the average
@@ -119,17 +89,19 @@ WHERE price > (SELECT AVG(price) FROM products);
 
 -- Query: Show the name of all products that are not in the same department
 -- as products with a price less than 100.
+-- Note: If any department has only products < 100 and some NULL prices exist, careful with NOT IN
 SELECT name
 FROM products
 WHERE department NOT IN (
     SELECT department
     FROM products
     WHERE price < 100
+    AND department IS NOT NULL  -- Safe handling if NULL departments possible
 );
 
 
 -- Query: Show the name, department, and price of products that are more
--- expensive than all products in the 'Industrial department'
+-- expensive than all products in the 'Industrial' department
 SELECT name, department, price
 FROM products
 WHERE price > (
@@ -138,7 +110,7 @@ WHERE price > (
     WHERE department = 'Industrial'
 );
 
--- Alternate solution of the above
+-- Alternate solution using > ALL
 SELECT name, department, price
 FROM products
 WHERE price > ALL (
@@ -148,55 +120,43 @@ WHERE price > ALL (
 );
 
 /*
-> ALL -> Means if the left side is greater than all of the records of right side.
-Similarly we have < ALL, >= ALL, <= ALL, = ALL, <> ALL.
+> ALL  -> Greater than every value returned by subquery
+< ALL, >= ALL, <= ALL, = ALL, <> ALL work similarly.
 
-We also have '> SOME' Which means if left side is greater than at least one record
-of the right side records.
-
-Similarly we have < SOME, >= SOME, <= SOME, = SOME, <> SOME.
-ANY is a alias name of SOME. So > SOME is exactly same as > ANY.
+> SOME -> Greater than at least one value (SOME is synonym for ANY)
+> ANY is equivalent to > SOME
 */
 
---------------
-
-/*
-Correlated Sub-Query
-
-Query: Show the name, department, and price of the most expensive product in
-each department.
-*/
-
+-- Correlated Sub-Query
+-- Query: Show the name, department, and price of the most expensive product in
+-- each department.
 SELECT name, department, price
-FROM products AS p1
-WHERE p1.price = (
-    SELECT MAX(price)
-    FROM products AS p2
+FROM products p1
+WHERE price = (
+    SELECT MAX(p2.price)
+    FROM products p2
     WHERE p2.department = p1.department
 );
 
 
-/*
-Query: Without using a join or a group by, print the number of orders for each
-product
-*/
+-- Query: Without using JOIN or GROUP BY in the main query, print the number of orders for each product
 SELECT name,
     (
         SELECT COUNT(*)
-        FROM orders AS o1
+        FROM orders o1
         WHERE o1.product_id = p1.id
     ) AS num_orders
-FROM products AS p1;
+FROM products p1;
 
 
--- SELECT without FROM
--- If subquery result is single value
+-- SELECT without FROM clause (scalar subqueries)
+-- Single value
 SELECT (
     SELECT MAX(price) FROM products
-);
+) AS max_price;
 
--- Useful when you need to print out aggregation type values at once.
+-- Multiple aggregates at once
 SELECT
-    (SELECT MAX(price) FROM phones) AS max_price,
-    (SELECT MIN(price) FROM phones) AS min_price,
-    (SELECT AVG(price) FROM phones) AS avg_price;
+    (SELECT MAX(price) FROM products) AS max_price,
+    (SELECT MIN(price) FROM products) AS min_price,
+    (SELECT AVG(price) FROM products) AS avg_price;
